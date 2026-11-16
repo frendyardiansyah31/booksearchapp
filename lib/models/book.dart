@@ -14,20 +14,54 @@ class Book {
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
+    final id = json['biblio_id']?.toString() ?? json['id']?.toString() ?? '';
+
+    final title = json['title'] ?? 'Untitled';
     final authors = json['sor'] ?? 'Unknown Author';
-    final imgFile = json['image'] ?? '';
+    final description = json['notes'] ?? 'No description available.';
+
     final thumbBase =
-        'https://catalog.uiii.ac.id/lib/minigalnano/createthumb.php?filename=images/docs/{fileImage}&width=120';
-    final imageUrl = imgFile.isNotEmpty
-        ? thumbBase.replaceAll('{fileImage}', imgFile)
-        : 'https://via.placeholder.com/120x160?text=No+Image';
+        'https://catalogue.uiii.ac.id/lib/minigalnano/createthumb.php?filename=images/docs/{fileImage}&width=120';
+
+    final imgRaw = json['image']?.toString() ?? '';
+
+    String imageUrl;
+
+    if (imgRaw.isEmpty) {
+      imageUrl = 'https://via.placeholder.com/120x160?text=No+Image';
+    } else if (imgRaw.startsWith('http')) {
+      imageUrl = imgRaw;
+    } else if (imgRaw.startsWith('./')) {
+      imageUrl =
+          'https://catalogue.uiii.ac.id/${imgRaw.replaceFirst('./', '')}';
+    } else {
+      imageUrl = thumbBase.replaceAll('{fileImage}', imgRaw);
+    }
 
     return Book(
-      id: json['id'] ?? '',
-      title: json['title'] ?? 'Untitled',
+      id: id,
+      title: title,
       author: authors,
-      description: json['notes'] ?? 'No description available.',
+      description: description,
       imageUrl: imageUrl,
     );
   }
+
+  factory Book.fromStoredJson(Map<String, dynamic> json) {
+    return Book(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      author: json['author'] as String,
+      description: json['description'] as String,
+      imageUrl: json['imageUrl'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'author': author,
+        'description': description,
+        'imageUrl': imageUrl,
+      };
 }

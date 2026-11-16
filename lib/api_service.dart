@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'models/book.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://catalog.uiii.ac.id/';
+  static const String baseUrl = 'https://catalogue.uiii.ac.id/';
 
   Future<List<Book>> searchBooks(String keywords) async {
     final uri = Uri.parse(baseUrl).replace(queryParameters: {
@@ -24,5 +24,20 @@ class ApiService {
     } else {
       throw Exception('Failed to load books');
     }
+  }
+
+  static Future<List<Book>> fetchBooksByCategory(String category) async {
+    final encodedCategory = Uri.encodeComponent(category);
+    final uri = Uri.parse(
+        'https://catalogue.uiii.ac.id/?p=api/biblio/coll_type/$encodedCategory');
+    final resp = await http.get(uri);
+
+    if (resp.statusCode != 200) {
+      throw Exception(
+          'Failed to load books for $category (status ${resp.statusCode})');
+    }
+
+    final List<dynamic> jsonData = json.decode(resp.body);
+    return jsonData.map((e) => Book.fromJson(e)).toList();
   }
 }
